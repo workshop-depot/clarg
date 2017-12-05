@@ -1,6 +1,7 @@
 package clarg
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,27 +10,27 @@ import (
 // this is just one way to do it. the flag back variables can be anywhere.
 
 var cmdDefault struct {
-	*Cmd
+	*flag.FlagSet
 	count int
 	data  string
 }
 
 var cmdList struct {
-	*Cmd
+	*flag.FlagSet
 	age  int
 	name string
 }
 
 var cmdSend struct {
-	*Cmd
+	*flag.FlagSet
 	dst     string
 	payload string
 }
 
 func prepCmd() {
-	cmdDefault.Cmd = New("")
-	cmdList.Cmd = New("list")
-	cmdSend.Cmd = New("send")
+	cmdDefault.FlagSet = flag.NewFlagSet("", flag.ExitOnError)
+	cmdList.FlagSet = flag.NewFlagSet("list", flag.ExitOnError)
+	cmdSend.FlagSet = flag.NewFlagSet("send", flag.ExitOnError)
 
 	cmdDefault.IntVar(&cmdDefault.count, "cnt", 0, "")
 	cmdDefault.StringVar(&cmdDefault.data, "data", "", "")
@@ -47,7 +48,7 @@ func TestNoArg(t *testing.T) {
 	args := []string{}
 	prepCmd()
 
-	err := parse(args, cmdDefault.Cmd, cmdSend.Cmd, cmdList.Cmd)
+	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
 }
 
@@ -57,11 +58,11 @@ func TestName(t *testing.T) {
 	args := []string{}
 	prepCmd()
 
-	err := parse(args, cmdDefault.Cmd, cmdSend.Cmd, cmdList.Cmd)
+	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
-	assert.Equal("", cmdDefault.Name())
-	assert.Equal("send", cmdSend.Name())
-	assert.Equal("list", cmdList.Name())
+	assert.Equal("", name(cmdDefault.FlagSet))
+	assert.Equal("send", name(cmdSend.FlagSet))
+	assert.Equal("list", name(cmdList.FlagSet))
 }
 
 func TestTopArg(t *testing.T) {
@@ -70,7 +71,7 @@ func TestTopArg(t *testing.T) {
 	args := []string{"-data", "Hi!", "-cnt", "66"}
 	prepCmd()
 
-	err := parse(args, cmdDefault.Cmd, cmdSend.Cmd, cmdList.Cmd)
+	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
@@ -83,7 +84,7 @@ func TestMultipleCommands01(t *testing.T) {
 		"send", "-dst", "10", "-p", "QWERTY", "list", "-age", "20", "-name", "Kaveh"}
 	prepCmd()
 
-	err := parse(args, cmdDefault.Cmd, cmdSend.Cmd, cmdList.Cmd)
+	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
@@ -101,7 +102,7 @@ func TestMultipleCommands02(t *testing.T) {
 		"send", "-dst", "10", "-p", "QWERTY"}
 	prepCmd()
 
-	err := parse(args, cmdDefault.Cmd, cmdSend.Cmd, cmdList.Cmd)
+	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
@@ -111,10 +112,10 @@ func TestMultipleCommands02(t *testing.T) {
 	assert.Equal("Kaveh", cmdList.name)
 }
 
-func ExampleCmd() {
-	cmdDefaultFlags := New("")
-	cmdListFlags := New("list")
-	cmdSendFlags := New("send")
+func ExampleParse() {
+	cmdDefaultFlags := flag.NewFlagSet("", flag.ExitOnError)
+	cmdListFlags := flag.NewFlagSet("list", flag.ExitOnError)
+	cmdSendFlags := flag.NewFlagSet("send", flag.ExitOnError)
 
 	var cmdDefault struct {
 		count int

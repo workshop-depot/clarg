@@ -1,19 +1,20 @@
 // Package clarg provides simple Sub-Commands for Go using flag package
-// - can be used via copy/paste too, because it's small.
+// - can be used via copy/paste too, because it's small and it's just some functions!
 package clarg
 
 import (
 	"flag"
 	"os"
+	"reflect"
 )
 
 // Parse parses arguments for list of commands.
 // The first command is the default command (top level args) and can be nil.
-func Parse(commands ...*Cmd) error {
+func Parse(commands ...*flag.FlagSet) error {
 	return parse(os.Args[1:], commands...)
 }
 
-func parse(args []string, commands ...*Cmd) error {
+func parse(args []string, commands ...*flag.FlagSet) error {
 	if len(commands) > 0 && commands[0] != nil {
 		if err := commands[0].Parse(args); err != nil {
 			return err
@@ -24,9 +25,9 @@ func parse(args []string, commands ...*Cmd) error {
 		return nil
 	}
 	commands = commands[1:]
-	cmdTable := make(map[string]*Cmd)
+	cmdTable := make(map[string]*flag.FlagSet)
 	for _, cmd := range commands {
-		cmdTable[cmd.cmdName] = cmd
+		cmdTable[name(cmd)] = cmd
 	}
 	for len(cmdTable) > 0 {
 		if len(args) == 0 {
@@ -48,21 +49,6 @@ func parse(args []string, commands ...*Cmd) error {
 	return nil
 }
 
-// New creates a *Cmd, default value for errorHandling is flag.ExitOnError,
-// for top level flags name must be "".
-func New(name string, errorHandling ...flag.ErrorHandling) *Cmd {
-	eh := flag.ExitOnError
-	if len(errorHandling) > 0 {
-		eh = errorHandling[0]
-	}
-	return &Cmd{FlagSet: flag.NewFlagSet(name, eh), cmdName: name}
+func name(c *flag.FlagSet) string {
+	return reflect.ValueOf(c).Elem().FieldByName("name").String()
 }
-
-// Cmd represents a sub command
-type Cmd struct {
-	*flag.FlagSet
-	cmdName string // if *flag.FlagSet could give us the name, there would be no need for this field.
-}
-
-// Name returns the name
-func (c *Cmd) Name() string { return c.cmdName }
