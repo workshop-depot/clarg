@@ -51,6 +51,19 @@ func TestNoArg(t *testing.T) {
 	assert.NoError(err)
 }
 
+func TestName(t *testing.T) {
+	assert := assert.New(t)
+
+	args := []string{}
+	prepCmd()
+
+	err := parse(args, cmdDefault.Cmd, cmdSend.Cmd, cmdList.Cmd)
+	assert.NoError(err)
+	assert.Equal("", cmdDefault.Name())
+	assert.Equal("send", cmdSend.Name())
+	assert.Equal("list", cmdList.Name())
+}
+
 func TestTopArg(t *testing.T) {
 	assert := assert.New(t)
 

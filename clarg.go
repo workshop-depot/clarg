@@ -26,7 +26,7 @@ func parse(args []string, commands ...*Cmd) error {
 	commands = commands[1:]
 	cmdTable := make(map[string]*Cmd)
 	for _, cmd := range commands {
-		cmdTable[cmd.Name] = cmd
+		cmdTable[cmd.cmdName] = cmd
 	}
 	for len(cmdTable) > 0 {
 		if len(args) == 0 {
@@ -48,17 +48,21 @@ func parse(args []string, commands ...*Cmd) error {
 	return nil
 }
 
-// New creates a *Cmd, default value for errorHandling is flag.ExitOnError
+// New creates a *Cmd, default value for errorHandling is flag.ExitOnError,
+// for top level flags name must be "".
 func New(name string, errorHandling ...flag.ErrorHandling) *Cmd {
 	eh := flag.ExitOnError
 	if len(errorHandling) > 0 {
 		eh = errorHandling[0]
 	}
-	return &Cmd{FlagSet: flag.NewFlagSet(name, eh), Name: name}
+	return &Cmd{FlagSet: flag.NewFlagSet(name, eh), cmdName: name}
 }
 
 // Cmd represents a sub command
 type Cmd struct {
 	*flag.FlagSet
-	Name string // if *flag.FlagSet could give us the name, there would be no need for this field.
+	cmdName string // if *flag.FlagSet could give us the name, there would be no need for this field.
 }
+
+// Name returns the name
+func (c *Cmd) Name() string { return c.cmdName }
