@@ -10,23 +10,22 @@ import (
 
 // Parse parses arguments for list of commands.
 // The first command is the default command (top level args) and can be nil.
-func Parse(commands ...*flag.FlagSet) error {
-	return parse(os.Args[1:], commands...)
+func Parse(top *flag.FlagSet, subs ...*flag.FlagSet) error {
+	return parse(os.Args[1:], top, subs...)
 }
 
-func parse(args []string, commands ...*flag.FlagSet) error {
-	if len(commands) > 0 && commands[0] != nil {
-		if err := commands[0].Parse(args); err != nil {
+func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) error {
+	if top != nil {
+		if err := top.Parse(args); err != nil {
 			return err
 		}
-		args = commands[0].Args()
+		args = top.Args()
 	}
 	if len(args) == 0 {
 		return nil
 	}
-	commands = commands[1:]
 	cmdTable := make(map[string]*flag.FlagSet)
-	for _, cmd := range commands {
+	for _, cmd := range subs {
 		cmdTable[name(cmd)] = cmd
 	}
 	for len(cmdTable) > 0 {
