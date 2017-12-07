@@ -4,6 +4,7 @@ package clarg
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"reflect"
 )
@@ -32,6 +33,7 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) error {
 		if len(args) == 0 {
 			return nil
 		}
+		found := false
 		for name, cmd := range cmdTable {
 			if args[0] != name {
 				continue
@@ -41,7 +43,12 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) error {
 			}
 			args = cmd.Args()
 			delete(cmdTable, name)
+			found = true
 			break
+		}
+		if !found {
+			fmt.Fprintf(os.Stderr, "command %v is not defined.\n", args[0])
+			os.Exit(-2)
 		}
 	}
 
