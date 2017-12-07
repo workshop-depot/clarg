@@ -1,5 +1,6 @@
 # clarg
-[![GoDoc](https://godoc.org/github.com/dc0d/clarg?status.svg)](https://godoc.org/github.com/dc0d/clarg)<br>
+[![GoDoc](https://godoc.org/github.com/dc0d/clarg?status.svg)](https://godoc.org/github.com/dc0d/clarg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dc0d/clarg)](https://goreportcard.com/report/github.com/dc0d/clarg)<br>
 Simple Sub-Commands for Go using flag package - can be used via copy/paste too, because it's small and it's just some functions!
 
 Go get `v2`:
