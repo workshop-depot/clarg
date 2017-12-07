@@ -48,8 +48,9 @@ func TestNoArg(t *testing.T) {
 	args := []string{}
 	prepCmd()
 
-	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
+	assert.Equal("", n)
 }
 
 func TestName(t *testing.T) {
@@ -58,8 +59,9 @@ func TestName(t *testing.T) {
 	args := []string{}
 	prepCmd()
 
-	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
+	assert.Equal("", n)
 	assert.Equal("", name(cmdDefault.FlagSet))
 	assert.Equal("send", name(cmdSend.FlagSet))
 	assert.Equal("list", name(cmdList.FlagSet))
@@ -71,7 +73,8 @@ func TestTopArg(t *testing.T) {
 	args := []string{"-data", "Hi!", "-cnt", "66"}
 	prepCmd()
 
-	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	assert.Equal("", n)
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
@@ -81,15 +84,14 @@ func TestMultipleCommands01(t *testing.T) {
 	assert := assert.New(t)
 
 	args := []string{"-data", "Hi!", "-cnt", "66",
-		"send", "-dst", "10", "-p", "QWERTY", "list", "-age", "20", "-name", "Kaveh"}
+		"list", "-age", "20", "-name", "Kaveh"}
 	prepCmd()
 
-	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	assert.Equal("list", n)
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
-	assert.Equal("10", cmdSend.dst)
-	assert.Equal("QWERTY", cmdSend.payload)
 	assert.Equal(20, cmdList.age)
 	assert.Equal("Kaveh", cmdList.name)
 }
@@ -98,18 +100,16 @@ func TestMultipleCommands02(t *testing.T) {
 	assert := assert.New(t)
 
 	args := []string{"-data", "Hi!", "-cnt", "66",
-		"list", "-age", "20", "-name", "Kaveh",
 		"send", "-dst", "10", "-p", "QWERTY"}
 	prepCmd()
 
-	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	assert.Equal("send", n)
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
 	assert.Equal("10", cmdSend.dst)
 	assert.Equal("QWERTY", cmdSend.payload)
-	assert.Equal(20, cmdList.age)
-	assert.Equal("Kaveh", cmdList.name)
 }
 
 func TestNonDefined(t *testing.T) {
@@ -118,7 +118,8 @@ func TestNonDefined(t *testing.T) {
 	args := []string{"hey"}
 	prepCmd()
 
-	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	assert.Equal("", n)
 	assert.Error(err)
 	assert.Contains(err.Error(), "command hey is not defined")
 }
@@ -126,14 +127,12 @@ func TestNonDefined(t *testing.T) {
 func TestNilTop(t *testing.T) {
 	assert := assert.New(t)
 
-	args := []string{"list", "-age", "20", "-name", "Kaveh",
-		"send", "-dst", "10", "-p", "QWERTY"}
+	args := []string{"list", "-age", "20", "-name", "Kaveh"}
 	prepCmd()
 
-	err := parse(args, nil, cmdSend.FlagSet, cmdList.FlagSet)
+	n, err := parse(args, nil, cmdSend.FlagSet, cmdList.FlagSet)
+	assert.Equal("list", n)
 	assert.NoError(err)
-	assert.Equal("10", cmdSend.dst)
-	assert.Equal("QWERTY", cmdSend.payload)
 	assert.Equal(20, cmdList.age)
 	assert.Equal("Kaveh", cmdList.name)
 }
@@ -167,10 +166,12 @@ func ExampleParse() {
 	cmdSendFlags.StringVar(&cmdSend.dst, "dst", "", "-dst <destination>")
 	cmdSendFlags.StringVar(&cmdSend.payload, "p", "", "-p <payload>")
 
-	if err := Parse(topFlags,
+	if name, err := Parse(topFlags,
 		cmdListFlags,
 		cmdSendFlags); err != nil {
 		// show/handle error
+	} else {
+		_ = name // the name of the command
 	}
 
 	// use values of back fields for flags
