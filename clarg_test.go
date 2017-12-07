@@ -125,6 +125,21 @@ func TestNonDefined(t *testing.T) {
 	assert.Contains(err.Error(), "command hey is not defined")
 }
 
+func TestNilTop(t *testing.T) {
+	assert := assert.New(t)
+
+	args := []string{"list", "-age", "20", "-name", "Kaveh",
+		"send", "-dst", "10", "-p", "QWERTY"}
+	prepCmd()
+
+	err := parse(args, nil, cmdSend.FlagSet, cmdList.FlagSet)
+	assert.NoError(err)
+	assert.Equal("10", cmdSend.dst)
+	assert.Equal("QWERTY", cmdSend.payload)
+	assert.Equal(20, cmdList.age)
+	assert.Equal("Kaveh", cmdList.name)
+}
+
 func ExampleParse() {
 	topFlags := flag.NewFlagSet("", flag.ExitOnError)
 	cmdListFlags := flag.NewFlagSet("list", flag.ExitOnError)

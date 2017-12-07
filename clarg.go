@@ -16,12 +16,25 @@ func Parse(top *flag.FlagSet, subs ...*flag.FlagSet) error {
 }
 
 func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) error {
-	if top != nil {
-		if err := top.Parse(args); err != nil {
-			return err
-		}
-		args = top.Args()
+	if top == nil {
+		top = flag.NewFlagSet("", flag.ExitOnError)
 	}
+	top.Usage = func() {
+		cnt := 0
+		top.VisitAll(func(*flag.Flag) { cnt++ })
+		if cnt > 0 {
+			fmt.Fprintf(os.Stderr, "Usage:\n")
+			top.PrintDefaults()
+		}
+		for _, cmd := range subs {
+			fmt.Fprintf(os.Stderr, "Usage of %s:\n", name(cmd))
+			cmd.PrintDefaults()
+		}
+	}
+	if err := top.Parse(args); err != nil {
+		return err
+	}
+	args = top.Args()
 	if len(args) == 0 {
 		return nil
 	}
