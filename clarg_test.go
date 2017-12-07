@@ -2,6 +2,8 @@ package clarg
 
 import (
 	"flag"
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -113,7 +115,7 @@ func TestMultipleCommands02(t *testing.T) {
 }
 
 func ExampleParse() {
-	cmdDefaultFlags := flag.NewFlagSet("", flag.ExitOnError)
+	topFlags := flag.NewFlagSet("", flag.ExitOnError)
 	cmdListFlags := flag.NewFlagSet("list", flag.ExitOnError)
 	cmdSendFlags := flag.NewFlagSet("send", flag.ExitOnError)
 
@@ -132,16 +134,25 @@ func ExampleParse() {
 		payload string
 	}
 
-	cmdDefaultFlags.IntVar(&cmdDefault.count, "cnt", 0, "")
-	cmdDefaultFlags.StringVar(&cmdDefault.data, "data", "", "")
+	topFlags.IntVar(&cmdDefault.count, "cnt", 0, "-cnt <count>")
+	topFlags.StringVar(&cmdDefault.data, "data", "", "-data <data string>")
 
-	cmdListFlags.IntVar(&cmdList.age, "age", -1, "")
-	cmdListFlags.StringVar(&cmdList.name, "name", "", "")
+	cmdListFlags.IntVar(&cmdList.age, "age", -1, "-age <age>")
+	cmdListFlags.StringVar(&cmdList.name, "name", "", "-name <name>")
 
-	cmdSendFlags.StringVar(&cmdSend.dst, "dst", "", "")
-	cmdSendFlags.StringVar(&cmdSend.payload, "p", "", "")
+	cmdSendFlags.StringVar(&cmdSend.dst, "dst", "", "-dst <destination>")
+	cmdSendFlags.StringVar(&cmdSend.payload, "p", "", "-p <payload>")
 
-	if err := Parse(cmdDefaultFlags,
+	topFlags.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage:\n")
+		topFlags.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "Usage of send:\n")
+		cmdSendFlags.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "Usage of list:\n")
+		cmdListFlags.PrintDefaults()
+	}
+
+	if err := Parse(topFlags,
 		cmdListFlags,
 		cmdSendFlags); err != nil {
 		// show/handle error
