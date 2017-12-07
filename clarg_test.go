@@ -2,8 +2,6 @@ package clarg
 
 import (
 	"flag"
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -168,15 +166,6 @@ func ExampleParse() {
 
 	cmdSendFlags.StringVar(&cmdSend.dst, "dst", "", "-dst <destination>")
 	cmdSendFlags.StringVar(&cmdSend.payload, "p", "", "-p <payload>")
-
-	topFlags.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage:\n")
-		topFlags.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "Usage of send:\n")
-		cmdSendFlags.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "Usage of list:\n")
-		cmdListFlags.PrintDefaults()
-	}
 
 	if err := Parse(topFlags,
 		cmdListFlags,
