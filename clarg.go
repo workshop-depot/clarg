@@ -47,8 +47,7 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) error {
 			break
 		}
 		if !found {
-			fmt.Fprintf(os.Stderr, "command %v is not defined.\n", args[0])
-			os.Exit(-2)
+			return fmt.Errorf("command %v is not defined", args[0])
 		}
 	}
 

@@ -114,6 +114,17 @@ func TestMultipleCommands02(t *testing.T) {
 	assert.Equal("Kaveh", cmdList.name)
 }
 
+func TestNonDefined(t *testing.T) {
+	assert := assert.New(t)
+
+	args := []string{"hey"}
+	prepCmd()
+
+	err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
+	assert.Error(err)
+	assert.Contains(err.Error(), "command hey is not defined")
+}
+
 func ExampleParse() {
 	topFlags := flag.NewFlagSet("", flag.ExitOnError)
 	cmdListFlags := flag.NewFlagSet("list", flag.ExitOnError)
