@@ -11,6 +11,7 @@ import (
 
 // Parse parses arguments for list of commands.
 // The first command is the default command (top level args) and can be nil.
+// Non-Flag args are available via matched FlagSet's Args() method.
 func Parse(top *flag.FlagSet, subs ...*flag.FlagSet) (string, error) {
 	return parse(os.Args[1:], top, subs...)
 }

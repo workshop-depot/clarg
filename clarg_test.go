@@ -2,6 +2,10 @@ package clarg
 
 import (
 	"flag"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -172,6 +176,73 @@ func ExampleParse() {
 		// show/handle error
 	} else {
 		_ = name // the name of the command
+	}
+
+	// use values of back fields for flags
+}
+
+func ExampleParse_env() {
+	topFlags := flag.NewFlagSet("", flag.ExitOnError)
+
+	var cmdDefault struct {
+		count int
+		data  string
+	}
+
+	topFlags.IntVar(&cmdDefault.count, "cnt", 0, "-cnt <count>")
+	topFlags.StringVar(&cmdDefault.data, "data", "", "-data <data string>")
+
+	if name, err := Parse(topFlags); err != nil {
+		// show/handle error
+	} else {
+		fromenv := func(set *flag.FlagSet, flagName, envName string) error {
+			f := set.Lookup(flagName)
+			if f == nil {
+				return nil
+			}
+			if f.Value.String() != f.DefValue {
+				return nil
+			}
+			e := os.Getenv(envName)
+			if e == "" {
+				return nil
+			}
+			if e == f.DefValue {
+				return nil
+			}
+			return f.Value.Set(e)
+		}
+		topFlags.VisitAll(func(f *flag.Flag) {
+			// sample env var name convention: APPNAME_FLAGNAME
+			if err := fromenv(topFlags,
+				f.Name,
+				strings.ToUpper(filepath.Base(os.Args[0])+"_"+f.Name)); err != nil {
+				log.Fatal(err)
+			}
+		})
+		_ = name // the name of the command
+	}
+
+	// use values of back fields for flags
+}
+
+func ExampleParse_nonArgs() {
+	topFlags := flag.NewFlagSet("", flag.ExitOnError)
+
+	var cmdDefault struct {
+		count int
+		data  string
+	}
+
+	topFlags.IntVar(&cmdDefault.count, "cnt", 0, "-cnt <count>")
+	topFlags.StringVar(&cmdDefault.data, "data", "", "-data <data string>")
+
+	if name, err := Parse(topFlags); err != nil {
+		// show/handle error
+	} else {
+		nonFlags := topFlags.Args()
+		_ = name // the name of the command
+		_ = nonFlags
 	}
 
 	// use values of back fields for flags
