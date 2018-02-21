@@ -45,21 +45,12 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, err
 	if len(args) == 0 {
 		return "", nil
 	}
-	var lastName string
-	for name, cmd := range cmdTable {
-		if args[0] != name {
-			continue
-		}
-		if err := cmd.Parse(args[1:]); err != nil {
-			return "", err
-		}
-		args = cmd.Args()
-		lastName = name
-		break
-	}
-	if lastName == "" {
+	cmd, found := cmdTable[args[0]]
+	if !found {
 		return "", fmt.Errorf("command %v is not defined", args[0])
 	}
-
-	return lastName, nil
+	if err := cmd.Parse(args[1:]); err != nil {
+		return "", err
+	}
+	return cmd.Name(), nil
 }
