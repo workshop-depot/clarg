@@ -54,7 +54,7 @@ func TestNoArg(t *testing.T) {
 
 	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
 	assert.NoError(err)
-	assert.Equal("", n)
+	assert.Equal("", n.Name())
 }
 
 func TestTopArg(t *testing.T) {
@@ -64,7 +64,7 @@ func TestTopArg(t *testing.T) {
 	prepCmd()
 
 	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
-	assert.Equal("", n)
+	assert.Equal("", n.Name())
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
@@ -78,7 +78,7 @@ func TestMultipleCommands01(t *testing.T) {
 	prepCmd()
 
 	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
-	assert.Equal("list", n)
+	assert.Equal("list", n.Name())
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
@@ -94,7 +94,7 @@ func TestMultipleCommands02(t *testing.T) {
 	prepCmd()
 
 	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
-	assert.Equal("send", n)
+	assert.Equal("send", n.Name())
 	assert.NoError(err)
 	assert.Equal("Hi!", cmdDefault.data)
 	assert.Equal(66, cmdDefault.count)
@@ -109,7 +109,7 @@ func TestNonDefined(t *testing.T) {
 	prepCmd()
 
 	n, err := parse(args, cmdDefault.FlagSet, cmdSend.FlagSet, cmdList.FlagSet)
-	assert.Equal("", n)
+	assert.True(nil == n)
 	assert.Error(err)
 	assert.Contains(err.Error(), "command hey is not defined")
 }
@@ -121,7 +121,7 @@ func TestNilTop(t *testing.T) {
 	prepCmd()
 
 	n, err := parse(args, nil, cmdSend.FlagSet, cmdList.FlagSet)
-	assert.Equal("list", n)
+	assert.Equal("list", n.Name())
 	assert.NoError(err)
 	assert.Equal(20, cmdList.age)
 	assert.Equal("Kaveh", cmdList.name)
@@ -156,12 +156,12 @@ func ExampleParse() {
 	cmdSendFlags.StringVar(&cmdSend.dst, "dst", "", "-dst <destination>")
 	cmdSendFlags.StringVar(&cmdSend.payload, "p", "", "-p <payload>")
 
-	if name, err := Parse(topFlags,
+	if cmd, err := Parse(topFlags,
 		cmdListFlags,
 		cmdSendFlags); err != nil {
 		// show/handle error
 	} else {
-		_ = name // the name of the command
+		_ = cmd // the matched *flag.FlagSet
 	}
 
 	// use values of back fields for flags
@@ -178,7 +178,7 @@ func ExampleParse_env() {
 	topFlags.IntVar(&cmdDefault.count, "cnt", 0, "-cnt <count>")
 	topFlags.StringVar(&cmdDefault.data, "data", "", "-data <data string>")
 
-	if name, err := Parse(topFlags); err != nil {
+	if cmd, err := Parse(topFlags); err != nil {
 		// show/handle error
 	} else {
 		fromenv := func(set *flag.FlagSet, flagName, envName string) error {
@@ -206,7 +206,7 @@ func ExampleParse_env() {
 				log.Fatal(err)
 			}
 		})
-		_ = name // the name of the command
+		_ = cmd // the matched *flag.FlagSet
 	}
 
 	// use values of back fields for flags
@@ -223,11 +223,11 @@ func ExampleParse_nonArgs() {
 	topFlags.IntVar(&cmdDefault.count, "cnt", 0, "-cnt <count>")
 	topFlags.StringVar(&cmdDefault.data, "data", "", "-data <data string>")
 
-	if name, err := Parse(topFlags); err != nil {
+	if cmd, err := Parse(topFlags); err != nil {
 		// show/handle error
 	} else {
 		nonFlags := topFlags.Args()
-		_ = name // the name of the command
+		_ = cmd // the matched *flag.FlagSet
 		_ = nonFlags
 	}
 

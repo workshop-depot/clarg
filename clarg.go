@@ -11,11 +11,11 @@ import (
 // Parse parses arguments for list of commands.
 // The first command is the default command (top level args) and can be nil.
 // Non-Flag args are available via matched FlagSet's Args() method.
-func Parse(top *flag.FlagSet, subs ...*flag.FlagSet) (string, error) {
+func Parse(top *flag.FlagSet, subs ...*flag.FlagSet) (*flag.FlagSet, error) {
 	return parse(os.Args[1:], top, subs...)
 }
 
-func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, error) {
+func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (*flag.FlagSet, error) {
 	if top == nil {
 		top = flag.NewFlagSet("", flag.ExitOnError)
 	}
@@ -32,11 +32,11 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, err
 		}
 	}
 	if err := top.Parse(args); err != nil {
-		return "", err
+		return nil, err
 	}
 	args = top.Args()
 	if len(args) == 0 {
-		return "", nil
+		return top, nil
 	}
 	cmdTable := make(map[string]*flag.FlagSet)
 	for _, cmd := range subs {
@@ -44,10 +44,10 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, err
 	}
 	cmd, found := cmdTable[args[0]]
 	if !found {
-		return "", fmt.Errorf("command %v is not defined", args[0])
+		return nil, fmt.Errorf("command %v is not defined", args[0])
 	}
 	if err := cmd.Parse(args[1:]); err != nil {
-		return "", err
+		return nil, err
 	}
-	return cmd.Name(), nil
+	return cmd, nil
 }
