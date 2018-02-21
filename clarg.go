@@ -42,9 +42,6 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, err
 	for _, cmd := range subs {
 		cmdTable[cmd.Name()] = cmd
 	}
-	if len(args) == 0 {
-		return "", nil
-	}
 	cmd, found := cmdTable[args[0]]
 	if !found {
 		return "", fmt.Errorf("command %v is not defined", args[0])
