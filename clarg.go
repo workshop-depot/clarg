@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"reflect"
 )
 
 // Parse parses arguments for list of commands.
@@ -28,7 +27,7 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, err
 			top.PrintDefaults()
 		}
 		for _, cmd := range subs {
-			fmt.Fprintf(os.Stderr, "Usage of %s:\n", name(cmd))
+			fmt.Fprintf(os.Stderr, "Usage of %s:\n", cmd.Name())
 			cmd.PrintDefaults()
 		}
 	}
@@ -41,7 +40,7 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, err
 	}
 	cmdTable := make(map[string]*flag.FlagSet)
 	for _, cmd := range subs {
-		cmdTable[name(cmd)] = cmd
+		cmdTable[cmd.Name()] = cmd
 	}
 	if len(args) == 0 {
 		return "", nil
@@ -63,8 +62,4 @@ func parse(args []string, top *flag.FlagSet, subs ...*flag.FlagSet) (string, err
 	}
 
 	return lastName, nil
-}
-
-func name(c *flag.FlagSet) string {
-	return reflect.ValueOf(c).Elem().FieldByName("name").String()
 }
